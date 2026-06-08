@@ -8,9 +8,9 @@ from tqdm import tqdm
 # ==========================================
 # CENTRALIZED ACCOUNT CREDENTIALS & ENDPOINTS
 # ==========================================
-GITHUB_TOKEN = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"  # Helps avoid GitHub API rate limits
-HF_TOKEN = "YOUR_HUGGING_FACE_SECRET_KEY"          # Required if accessing restricted/gated models
-WEAVIATE_API_KEY = "local-secure-weaviate-token-2026"  # Must match docker-compose.yml!
+GITHUB_TOKEN = ""  # Helps avoid GitHub API rate limits
+HF_TOKEN = ""          # Required if accessing restricted/gated models
+WEAVIATE_API_KEY = ""  # Must match docker-compose.yml!
 
 # Infrastructure Endpoint Definitions
 OLLAMA_ENDPOINT = "http://localhost:11434/api/generate"
@@ -24,7 +24,7 @@ print("Loading local BGE-M3 embedding model to system memory...")
 # Initializes model locally. Leverages HF_TOKEN if provided for secure connections.
 embedding_model = SentenceTransformer(
     'BAAI/bge-m3', 
-    token=HF_TOKEN if HF_TOKEN != "YOUR_HUGGING_FACE_SECRET_KEY" else None
+    token=HF_TOKEN if HF_TOKEN != "" else None
 )
 
 print("Establishing authenticated hook to secured Weaviate node on localhost...")
@@ -53,7 +53,7 @@ def fetch_software_alternatives_dataset():
     }
     
     headers = {"Accept": "application/vnd.github.v3+json"}
-    if GITHUB_TOKEN and GITHUB_TOKEN != "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN":
+    if GITHUB_TOKEN and GITHUB_TOKEN != "":
         headers["Authorization"] = f"token {GITHUB_TOKEN}"
     
     try:
@@ -185,8 +185,18 @@ Analyze the parameters. Provide a specific workflow recommendation based only on
     }
     
     try:
-        api_callback = requests.post(OLLAMA_ENDPOINT, json=payload, timeout=45)
-        return api_callback.json().get("response", "Error: Received blank generation metadata.")
+        api_callback = requests.post(OLLAMA_ENDPOINT, json=payload, timeout=150)
+        
+        # Check for non-200 HTTP status codes before parsing JSON
+        if api_callback.status_code != 200:
+            return f"Ollama returned HTTP error status {api_callback.status_code}. Raw response text: {api_callback.text}"
+            
+        # Safely try to parse JSON
+        try:
+            return api_callback.json().get("response", "Error: Received blank generation metadata.")
+        except requests.exceptions.JSONDecodeError:
+            return f"Failed to parse JSON from Ollama. The raw server response was: {api_callback.text}"
+            
     except Exception as e:
         return f"Failed to execute local synthesis loop via Dockerized Ollama service: {e}"
 
