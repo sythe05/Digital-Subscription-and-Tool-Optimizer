@@ -8,9 +8,9 @@ from tqdm import tqdm
 # ==========================================
 # CENTRALIZED ACCOUNT CREDENTIALS & ENDPOINTS
 # ==========================================
-GITHUB_TOKEN = "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"  # Helps avoid GitHub API rate limits
-HF_TOKEN = "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"          # Required if accessing restricted/gated models
-WEAVIATE_API_KEY = "my-super-secret-local-key-123"          # Populate if utilizing an authenticated instance
+GITHUB_TOKEN = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"  # Helps avoid GitHub API rate limits
+HF_TOKEN = "YOUR_HUGGING_FACE_SECRET_KEY"          # Required if accessing restricted/gated models
+WEAVIATE_API_KEY = "YOUR_WEAVIATE_API_KEY"          # Populate if utilizing an authenticated instance
 
 # Infrastructure Endpoint Definitons
 WEAVIATE_URL = "http://localhost:8080"
@@ -26,12 +26,12 @@ print("Loading local BGE-M3 embedding model to system memory...")
 # Initializes model locally. Leverages HF_TOKEN if provided for secure connections.
 embedding_model = SentenceTransformer(
     'BAAI/bge-m3', 
-    token=HF_TOKEN if HF_TOKEN != "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" else None
+    token=HF_TOKEN if HF_TOKEN != "YOUR_HUGGING_FACE_SECRET_KEY" else None
 )
 
 # Handle adaptive connection authentication hooks for Weaviate
 weaviate_auth = None
-if WEAVIATE_API_KEY and WEAVIATE_API_KEY != "my-super-secret-local-key-123":
+if WEAVIATE_API_KEY and WEAVIATE_API_KEY != "YOUR_WEAVIATE_API_KEY":
     weaviate_auth = weaviate.auth.AuthApiKey(WEAVIATE_API_KEY)
 
 print(f"Connecting to Weaviate cluster instance at {WEAVIATE_URL}...")
@@ -58,7 +58,7 @@ def fetch_software_alternatives_dataset():
     }
     
     headers = {"Accept": "application/vnd.github.v3+json"}
-    if GITHUB_TOKEN and GITHUB_TOKEN != "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":
+    if GITHUB_TOKEN and GITHUB_TOKEN != "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN":
         headers["Authorization"] = f"token {GITHUB_TOKEN}"
     
     try:
