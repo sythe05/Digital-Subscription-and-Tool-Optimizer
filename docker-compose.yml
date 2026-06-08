@@ -15,10 +15,15 @@ services:
     restart: on-failure:0
     environment:
       QUERY_DEFAULTS_LIMIT: 25
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       DEFAULT_VECTORIZER_MODULE: 'none'
       ENABLE_MODULES: ''
+      
+      # Enforce Secure Local API Authentication
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'false'
+      AUTHENTICATION_APIKEY_ENABLED: 'true'
+      AUTHENTICATION_APIKEY_ALLOWED_KEYS: 'local-secure-weaviate-token-2026'
+      AUTHENTICATION_APIKEY_USERS: 'admin'
 
   ollama:
     image: ollama/ollama:latest
@@ -27,6 +32,10 @@ services:
     volumes:
     - ollama_data:/root/.ollama
     restart: on-failure:0
+    # Overrides virtual interface DNS gaps to guarantee model downloads succeed
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
 
 volumes:
   ollama_data:
