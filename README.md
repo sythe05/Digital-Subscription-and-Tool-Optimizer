@@ -1,6 +1,6 @@
 # Financial Optimization Dashboard: Local RAG Pipeline
 
-An intelligent, privacy-first financial optimization engine designed to help users identify, analyze, and mitigate digital subscription bloat. The system ingests expense data, evaluates usage-based Return on Investment (ROI), detects functional redundancies, and automatically maps budget constraints against live-harvested open-source software alternatives using local semantic search and Large Language Model (LLM) synthesis.
+An intelligent financial optimization engine designed to help users identify, analyze, and mitigate digital subscription bloat. The system ingests expense data, evaluates usage-based Return on Investment (ROI), detects functional redundancies, and automatically maps budget constraints against live-harvested open-source software alternatives using local semantic search and Large Language Model (LLM) synthesis.
 
 ## 🏗️ Architecture Overview
 
