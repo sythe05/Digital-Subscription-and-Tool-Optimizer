@@ -1,147 +1,87 @@
 # Financial Optimization Dashboard: Local RAG Pipeline
 
-An intelligent, privacy-first financial optimization engine designed to help users identify, analyze, and mitigate digital subscription bloat. The system ingest expense data, evaluates usage-based Return on Investment (ROI), detects functional redundancies, and automatically maps budget constraints against live-harvested open-source software alternatives using local semantic search and Large Language Model (LLM) synthesis.
+An intelligent, privacy-first financial optimization engine designed to help users identify, analyze, and mitigate digital subscription bloat. The system ingests expense data, evaluates usage-based Return on Investment (ROI), detects functional redundancies, and automatically maps budget constraints against live-harvested open-source software alternatives using local semantic search and Large Language Model (LLM) synthesis.
 
----
-
-## Architecture Overview
+## 🏗️ Architecture Overview
 
 The system operates entirely on local infrastructure to ensure complete data privacy and zero external API runtime costs:
 
-* **Dynamic Data Scraper (`Python`):** Connects to the GitHub API to dynamically harvest a matrix of open-source repositories tagged under production developer tools, self-hosted alternatives, databases, and collaboration platforms.
-* **Vector Indexing Engine (`Weaviate`):** A containerized vector database that stores structural metadata (descriptions, tags, URLs, star counts) and executes semantic vector queries using deep text context matches.
-* **Local Inference Synthesis (`Ollama` & `Llama 3`):** Processes retrieved software alternatives and shapes them into clean, high-density, 3-sentence cost-mitigation paths.
+* **Dynamic Data Scraper:** Connects to the GitHub API to dynamically harvest a matrix of open-source repositories tagged under production developer tools, self-hosted alternatives, databases, and collaboration platforms.
+* **Vector Indexing Engine (`Weaviate`):** A containerized vector database running locally that stores structural metadata and executes semantic vector queries using the `BAAI/bge-m3` embedding model.
+* **Local Inference Synthesis (`Ollama` & `Llama 3`):** Processes retrieved software alternatives and shapes them into detailed, step-by-step migration guides using local LLM inference.
 * **Interactive Terminal Shell:** Provides an active runtime loop allowing continuous, back-to-back problem inputs without database re-initialization.
 
 ---
 
-## Prerequisites
+## ⚙️ Prerequisites
 
 Before setting up the project, ensure your local machine meets the following requirements:
-
 * **Operating System:** Windows 10/11 (with WSL2 enabled), macOS, or Linux.
 * **Python:** Version `3.10` or higher.
 * **Docker:** Docker Desktop installed and running.
 
 ---
 
-## Installation & Setup Guide
+## 🚀 Installation & Setup Guide
 
-### Step 1: Install and Configure Docker Desktop
-
-1. Download and install **Docker Desktop** for your operating system from the [Official Docker Website](https://www.docker.com/products/docker-desktop/).
-2. Launch Docker Desktop and ensure the Docker engine is completely initialized (the status indicator in the bottom corner should turn green).
-3. *(Windows Only)* Ensure that Docker is configured to use the WSL2 backend for optimal performance.
-
-### Step 2: Clone and Configure the Project
-
-Create your project directory and set up your configuration file:
-
+### Step 1: Clone the Repository
+Clone this project to your local machine and navigate into the directory:
 ```bash
-mkdir financial-optimizer-rag
-cd financial-optimizer-rag
+git clone [https://github.com/sythe05/Digital-Subscription-and-Tool-Optimizer.git](https://github.com/sythe05/Digital-Subscription-and-Tool-Optimizer.git)
+cd Digital-Subscription-and-Tool-Optimizer
 
 ```
 
-Create a `docker-compose.yml` file in the root directory to manage your local infrastructure stack:
+### Step 2: Environment Setup & Dependencies
 
-```yaml
-version: '3.8'
+It is highly recommended to use a virtual environment to isolate the project packages.
 
-services:
-  weaviate:
-    command:
-    - --host
-    - 0.0.0.0
-    - --port
-    - '8080'
-    - --scheme
-    - http
-    image: cr.weaviate.io/semitechnologies/weaviate:1.24.1
-    ports:
-    - 8080:8080
-    - 50051:50051
-    volumes:
-    - weaviate_data:/var/lib/weaviate
-    environment:
-      QUERY_DEFAULTS_LIMIT: 25
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
-      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
-      DEFAULT_VECTORIZER_MODULE: 'none'
-      ENABLE_MODULES: ''
+1. Create and activate a virtual environment:
+* **Windows:** `python -m venv venv` and then `.\venv\Scripts\activate`
+* **macOS/Linux:** `python3 -m venv venv` and then `source venv/bin/activate`
 
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-    - 11434:11434
-    volumes:
-    - ollama_data:/root/.ollama
 
-volumes:
-  weaviate_data:
-  ollama_data:
+2. Install the strict dependencies from the `requirements.txt` file:
+```bash
+pip install -r requirements.txt
 
 ```
 
-### Step 3: Spin Up Infrastructure Containers
 
-Run the following command to download the service images and spin up the databases in detached background mode:
+
+### Step 3: Configure API Keys (Important)
+
+Open the main Python script and update the environment variables with your personal access tokens. **Do not commit your actual tokens to version control.**
+
+```python
+GITHUB_TOKEN = "your_github_personal_access_token"
+HF_TOKEN = "your_hugging_face_token"
+
+```
+
+### Step 4: Spin Up Infrastructure Containers
+
+The `docker-compose.yml` file is pre-configured with secure API keys and specific DNS overrides to ensure smooth model downloads. Spin up the Weaviate and Ollama databases in detached mode:
 
 ```bash
 docker compose up -d
 
 ```
 
-Verify that both containers are active and healthy:
+### Step 5: Download the Local LLM Weights
 
-```bash
-docker compose ps
-
-```
-
-### Step 4: Download the Local LLM Weights
-
-Ollama requires explicit local ingestion of model weights before running inference. Pull the Llama 3 model into your container's registry:
+Ollama requires explicit local ingestion of model weights before running inference. Pull the Llama 3 model directly into your container's registry:
 
 ```bash
 docker compose exec ollama ollama pull llama3
 
 ```
 
-To verify the model downloaded successfully, test the local endpoint:
-
-```bash
-curl http://localhost:11434/api/tags
-
-```
-
-*(You should see `"name":"llama3:latest"` in the JSON payload returned).*
-
-### Step 5: Set Up the Python Environment
-
-1. Initialize a localized virtual environment to isolate dependency packages:
-```bash
-python -m venv venv
-
-```
-
-
-2. Activate the virtual environment:
-* **Windows (PowerShell):** `.\venv\Scripts\Activate.ps1`
-* **Linux/macOS:** `source venv/bin/activate`
-
-
-3. Install the required external client packages:
-```bash
-pip install weaviate-client requests
-
-```
-
-
+*(Wait for the download to reach 100% and output "success").*
 
 ---
 
-## Running the Application
+## 💻 Running the Application
 
 Launch the interactive terminal shell using the following command:
 
@@ -152,8 +92,8 @@ python optimizer_rag.py
 
 ### Expected Behavior:
 
-1. On the first run, the script detects that the Weaviate collection is uninitialized. It automatically hits the GitHub API, harvests the software alternative matrices, generates structural vector metrics, and seeds the collection.
-2. Once initialization completes, the shell presents an open interactive query line:
+1. **Initial Run:** The script detects an empty Weaviate collection. It automatically connects to the GitHub API, harvests software alternatives based on targeted queries, vectorizes the descriptions, and seeds the local database.
+2. **Interactive Loop:** Once initialization is complete, the shell opens for querying:
 ```text
 ============================================================
 LOCAL SYSTEM READY: INTERACTIVE ANALYSIS MODE
@@ -169,41 +109,44 @@ Enter your query:
 
 ---
 
-## Sample Queries for Testing
+## 🧪 Sample Queries for Testing
 
-Test the vector mapping accuracy by passing constraints covering student deployment barriers, design software pricing overhead, or workspace coordination tooling:
+Test the vector mapping accuracy by pasting these scenarios into the terminal:
 
 * **Database & Hosting Optimization:**
-> *We are looking to scale our mobile application backend, but the recurring monthly costs for Firebase authentication, Firestore reads/writes, and cloud functions are becoming unsustainable for our student budget.*
-
-
-* **UI/UX Software Footprint Reduction:**
-> *Our frontend design team is expanding, and the enterprise licensing fees for Figma are taking up too much of our annual toolkit budget. We need a collaborative, web-standards alternative we can self-host.*
+> *"Our software development team is paying high recurring fees for centralized cloud-hosted databases, user authentication, and realtime syncing software tools."*
 
 
 * **Local Project Coordination Workspace:**
-> *We are trying to organize code repositories and track team tasks for our upcoming B.Tech assignments. GitHub Pro and Jira are overkill. What are some self-hosted version control and Kanban board alternatives we can run locally?*
+> *"We are trying to organize code repositories and track team tasks for our upcoming B.Tech assignments. GitHub Pro and Jira are overkill. What are some self-hosted version control and Kanban board alternatives we can run locally?"*
 
 
 
 ---
 
-## Database Management & Maintenance
+## 🧹 Database Management & Maintenance
 
 If you modify the search queries inside `fetch_software_alternatives_dataset()` to target different technology domains, you must clear out the old vector storage cache to force a fresh data build.
 
-Wipe the internal docker volumes completely and reseed by executing:
+**⚠️ Important:** The `-v` flag in the teardown command destroys *all* attached volumes. This means it wipes the Weaviate data, but it *also* wipes the Ollama model weights. You must re-pull the Llama 3 model after running this.
+
+Wipe the internal docker volumes completely and reseed by executing the following sequence:
 
 ```bash
-# Bring down containers and destroy old volume blocks
+# 1. Bring down containers and destroy old volume blocks (This deletes the Llama 3 model too!)
 docker compose down -v
 
-# Restart fresh containers
+# 2. Restart fresh containers
 docker compose up -d
 
-# Execute runtime script to trigger new data ingestion
+# 3. Re-download the Llama 3 model weights
+docker compose exec ollama ollama pull llama3
+
+# 4. Run the script to trigger fresh vector data ingestion
 python optimizer_rag.py
 
 ```
 
----
+```
+
+```
