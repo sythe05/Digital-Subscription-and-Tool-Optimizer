@@ -10,16 +10,14 @@ from tqdm import tqdm
 # ==========================================
 GITHUB_TOKEN = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN"  # Helps avoid GitHub API rate limits
 HF_TOKEN = "YOUR_HUGGING_FACE_SECRET_KEY"          # Required if accessing restricted/gated models
-WEAVIATE_API_KEY = "YOUR_WEAVIATE_API_KEY"          # Populate if utilizing an authenticated instance
+WEAVIATE_API_KEY = "local-secure-weaviate-token-2026"  # Must match docker-compose.yml!
 
-# Infrastructure Endpoint Definitons
-WEAVIATE_URL = "http://localhost:8080"
+# Infrastructure Endpoint Definitions
 OLLAMA_ENDPOINT = "http://localhost:11434/api/generate"
-
 COLLECTION_NAME = "SubscriptionAlternative"
 
 # ==========================================
-# SYSTEM INITIALIZATION
+# SYSTEM INITIALIZATION & CONNECTION
 # ==========================================
 
 print("Loading local BGE-M3 embedding model to system memory...")
@@ -29,15 +27,12 @@ embedding_model = SentenceTransformer(
     token=HF_TOKEN if HF_TOKEN != "YOUR_HUGGING_FACE_SECRET_KEY" else None
 )
 
-# Handle adaptive connection authentication hooks for Weaviate
-weaviate_auth = None
-if WEAVIATE_API_KEY and WEAVIATE_API_KEY != "YOUR_WEAVIATE_API_KEY":
-    weaviate_auth = weaviate.auth.AuthApiKey(WEAVIATE_API_KEY)
-
-print(f"Connecting to Weaviate cluster instance at {WEAVIATE_URL}...")
-client = weaviate.connect_to_custom(
-    connection_params=weaviate.ConnectionParams.from_url(WEAVIATE_URL),
-    auth_credentials=weaviate_auth
+print("Establishing authenticated hook to secured Weaviate node on localhost...")
+# UPDATED: Weaviate v4 connection requires explicit grpc_port
+client = weaviate.connect_to_local(
+    port=8080,
+    grpc_port=50051,
+    auth_credentials=weaviate.auth.AuthApiKey(WEAVIATE_API_KEY)
 )
 
 # ==========================================
@@ -103,11 +98,12 @@ def get_backup_seed_data():
 # VECTOR DATABASE SETUP & INGESTION
 # ==========================================
 
-def initialize_vector_schema():
-    """Prepares isolated vector indices inside the running Weaviate service."""
+def initialize_vector_schema_if_needed():
+    """Configures internal cluster index metrics only if they do not already exist."""
+    # UPDATED: Smart check to prevent wiping your database every run
     if client.collections.exists(COLLECTION_NAME):
-        print(f"Stale index matching '{COLLECTION_NAME}' found. Purging for database reset...")
-        client.collections.delete(COLLECTION_NAME)
+        print(f"Verified: Existing index '{COLLECTION_NAME}' is healthy and loaded. Skipping data recreation.")
+        return False
         
     print(f"Configuring new Weaviate vector schema for '{COLLECTION_NAME}'...")
     client.collections.create(
@@ -122,6 +118,7 @@ def initialize_vector_schema():
             wvc.config.Property(name="is_open_source", data_type=wvc.config.DataType.BOOL),
         ]
     )
+    return True
 
 def populate_vector_store(software_records):
     """Generates vectors locally and streams the metrics into the Weaviate container."""
@@ -199,14 +196,12 @@ Analyze the parameters. Provide a specific workflow recommendation based only on
 
 if __name__ == "__main__":
     try:
-        # Step 1: Collect data records matching problem intent
-        dataset = fetch_software_alternatives_dataset()
+        # UPDATED: Only fetch and seed if the database is brand new
+        needs_seeding = initialize_vector_schema_if_needed()
         
-        # Step 2: Establish isolated vector structures
-        initialize_vector_schema()
-        
-        # Step 3: Seed structures using embeddings
-        populate_vector_store(dataset)
+        if needs_seeding:
+            dataset = fetch_software_alternatives_dataset()
+            populate_vector_store(dataset)
         
         print("\n" + "="*60)
         print("LOCAL SYSTEM READY: RUNNING ANALYSIS")
